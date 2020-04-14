@@ -165,7 +165,6 @@ export TOKEN=$(gcloud auth print-access-token)
 
 ```shell script
 gcloud services enable cloudkms.googleapis.com
-# export LOCATION=us-central1
 export LOCATION=global
 ```
 
@@ -208,8 +207,8 @@ curl -X POST "https://cloudkms.googleapis.com/v1/projects/$PROJECT/locations/$LO
 The result should be as shown below.
 ```json
 {
-  "name": "projects/YOUR_PROJECT/locations/us-central1/keyRings/dlp-encryption-keys/cryptoKeys/DlpCryptoKey/cryptoKeyVersions/1",
-  "ciphertext": "CiQAje8PZ146KvIPVuQ/4YO2uPHmzv0caTEjh40v4Gs75bPk7TwSSQAtaG4wwfPc1jvHZqQN0frFRq+MW+LnCSiuKWiOCJeEw1P9DHdsWldl6wHGsJoPpUFTCNbZPmBgqwIe2g0tNVIxlCRzNjjp8aM="
+  "name": "projects/YOUR_PROJECT/locations/global/keyRings/dlp-encryption-keys/cryptoKeys/DlpCryptoKey/cryptoKeyVersions/1",
+  "ciphertext": "CiQAQS6oVtm6ovmEEZ/bwFfrIlRVAgiqdQziSAmYk7085ui/NyUSSABOEXzsyYS2LXBqbP4vIUUKTRZ4uEPJ+/KW9Z38a75cRFcDpPfDY2dDRe4G9rGYP+aazYJ7BCnpumqCg/rq+6ELzXl1lDNSRQ=="
 }
 ```
 
@@ -222,7 +221,7 @@ curl -X GET "https://cloudkms.googleapis.com/v1/projects/$PROJECT/locations/$LOC
 You can [**decrypt**](https://cloud.google.com/kms/docs/reference/rest/v1/projects.locations.keyRings.cryptoKeys/decrypt)
 the text using the following command. 
 ```shell script
-curl -X POST "https://cloudkms.googleapis.com/v1/projects/$PROJECT/locations/$LOCATION/keyRings/$KEYRING/cryptoKeys/$CRYPTOKEY\:decrypt?name=projects/sw-hpc/locations/us-central1/keyRings/dlp-encryption-keys/cryptoKeys/DlpCryptoKey" \
+curl -X POST "https://cloudkms.googleapis.com/v1/projects/$PROJECT/locations/$LOCATION/keyRings/$KEYRING/cryptoKeys/$CRYPTOKEY\:decrypt?name=projects/$PROJECT/locations/$LOCATION/keyRings/dlp-encryption-keys/cryptoKeys/DlpCryptoKey" \
 -H "Authorization: Bearer $TOKEN" \
 -H "Content-Type: application/json" \
 -d @kms-request-data/kms-decrypt-payload.json -i
