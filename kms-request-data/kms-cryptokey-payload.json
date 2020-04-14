@@ -1,0 +1,17 @@
+{
+  "purpose": "ENCRYPT_DECRYPT",
+  "versionTemplate": {
+    "protectionLevel": "SOFTWARE",
+    "algorithm": "GOOGLE_SYMMETRIC_ENCRYPTION"
+  },
+  "labels": [
+    {
+      "key": "team",
+      "value": "myteam"
+    },
+    {
+      "key": "type",
+      "value": "demo"
+    }
+  ]
+}

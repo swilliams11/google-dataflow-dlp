@@ -1,0 +1,31 @@
+{
+  "deidentifyTemplate":{
+    "displayName":"De-indentification Sensitive Data With Key Template",
+    "description":"De-identifies tabular (csv) sensitive data with a key.",
+    "deidentifyConfig": {
+      "recordTransformations": {
+        "fieldTransformations": [
+          {
+            "primitiveTransformation": {
+              "cryptoReplaceFfxFpeConfig": {
+                "cryptoKey": {
+                  "kmsWrapped": {
+                    "wrappedKey": "CiQAje8PZ146KvIPVuQ/4YO2uPHmzv0caTEjh40v4Gs75bPk7TwSSQAtaG4wwfPc1jvHZqQN0frFRq+MW+LnCSiuKWiOCJeEw1P9DHdsWldl6wHGsJoPpUFTCNbZPmBgqwIe2g0tNVIxlCRzNjjp8aM=",
+                    "cryptoKeyName": "REPLACE_WITH_YOUR_CRYPTO_KEY_NAME"
+                  }
+                },
+                "commonAlphabet": "NUMERIC"
+              }
+            },
+            "fields": [
+              {
+                "name": "Employee ID"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "templateId": "deidentification-sensitive-data-with-kms-key"
+}

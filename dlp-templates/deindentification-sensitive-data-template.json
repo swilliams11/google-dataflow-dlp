@@ -1,0 +1,41 @@
+{
+  "deidentifyTemplate":{
+    "displayName":"De-indentification Sensitive Data With Key Template",
+    "description":"De-identifies tabular (csv) sensitive data with a key.",
+    "deidentifyConfig":{
+      "infoTypeTransformations":{
+        "transformations":[
+          {
+            "infoTypes":[
+              {
+                "name":"LAST_NAME"
+              }
+            ],
+            "primitiveTransformation":{
+              "characterMaskConfig":{
+                "maskingCharacter":"*"
+              }
+            }
+          },
+          {
+            "infoTypes":[
+              {
+                "name":"EMAIL_ADDRESS"
+              }
+            ],
+            "primitiveTransformation":{
+              "characterMaskConfig":{
+                "charactersToIgnore":[
+                  {
+                    "charactersToSkip":"@"
+                  }
+                ],
+                "maskingCharacter":"*"
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}

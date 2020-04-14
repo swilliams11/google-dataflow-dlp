@@ -1,0 +1,30 @@
+{
+  "deidentifyTemplate":{
+    "displayName":"De-indentification Sensitive Data With Key Template",
+    "description":"De-identifies tabular (csv) sensitive data with a key.",
+    "deidentifyConfig": {
+      "recordTransformations": {
+        "fieldTransformations": [
+          {
+            "primitiveTransformation": {
+              "cryptoReplaceFfxFpeConfig": {
+                "cryptoKey": {
+                  "unwrapped": {
+                    "key": "YWJjZGVmZ2hpamtsbW5vcA=="
+                  }
+                },
+                "commonAlphabet": "NUMERIC"
+              }
+            },
+            "fields": [
+              {
+                "name": "Employee ID"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "templateId": "deidentification-sensitive-data-with-hardcoded-key"
+}
