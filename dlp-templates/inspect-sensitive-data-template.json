@@ -1,0 +1,17 @@
+{
+  "inspectTemplate":{
+    "displayName":"Inspect Sensitive Data Template",
+    "description":"Inspect tabular (csv) sensitive data.",
+    "inspectConfig":{
+      "infoTypes":[
+        {
+          "name":"LAST_NAME"
+        },
+        {
+          "name":"EMAIL_ADDRESS"
+        }
+        ]
+      }
+  },
+  "templateId": "inspect-sensitive-data"
+}

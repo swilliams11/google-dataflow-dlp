@@ -35,8 +35,6 @@ a deterministic config `cryptoDeterministicConfig`
 * `sample-data/employee_data2.csv` - a second CSV file with column headers and sample data.  
  
 ## Getting started  
-
-### Prerequisites
 #### 1. GCP Setup.
 ```shell script
 export PROJECT=$(gcloud config get-value core/project)
@@ -93,7 +91,7 @@ curl -X DELETE "https://dlp.googleapis.com/v2/projects/$PROJECT/deidentifyTempla
 #### 2. Upload the sample data 
 ```
 gcloud auth login
-gsutil cp sample-data/employee_data.csv gs://$BUCKET/
+gsutil cp sample-data/*.csv gs://$BUCKET/
 ``` 
 
 #### 3. Setup your local environment. 
@@ -103,7 +101,7 @@ Open your IDE (IntelliJ) and then open the terminal tab and execute the followin
 * `export BUCKET=parent_path_to_gcp_bucket_you_created_earlier`
 
 
-#### 4. From your IDE (IntelliJ) terminal tab
+#### 4. From your IDE (IntelliJ) terminal tab or your existing terminal window
 ##### De-identification Sensitive Data with Key Hardcoded in Template
 This section describes how to apply the `deindentification-sensitive-data-with-key-template.json` file.
 
@@ -122,32 +120,88 @@ This creates a batch job description named `dlp-sensitive-data-with-hardcoded-ke
  --runner=DataflowRunner"
 ```
 
-Execute the job with the required options.
+Execute the job with the required options.  This is a streaming job, so it will take a minute or two to create the 
+infrastructure and start listening for GCS files.  Once the job processes the file then you can view the redacted data
+in BigQuery.  
   
 ```shell script
 gcloud dataflow jobs run dlp-sensitive-data-with-hardcoded-key \
 --gcs-location=gs://$BUCKET/dlp-sensitive-data-with-hardcoded-key.json \
 --zone=us-central1-f \
---parameters=inputFilePattern=gs://$BUCKET/*.csv,\
+--parameters=inputFilePattern=gs://$BUCKET/\*.csv,\
 dlpProjectId=$PROJECT,\
 deidentifyTemplateName=projects/$PROJECT/deidentifyTemplates/$DLP_TEMPLATE_NAME,\
 datasetName=$DATASET_NAME,\
 batchSize=10
 ``` 
 
-##### Redaction of Sensitive Data Template
+Login to Google Cloud console and view the job status and cancel it after it processes the file. 
+
+### Redaction of Sensitive Data Template
 This section describes how to include the `deindentification-sensitive-data-template.json`.  This template redacts the
-based on the pattern included in the template.  There is no way to recover the original data after it is redacted.
-Therefore you must save a copy of the original file if you need to look up the original values.   
+data based on the pattern included in the template (Last Name and Email).  There is no way to recover the original data after it is redacted.
+Therefore, you must save a copy of the original file if you need to look up the original values.
 
-TODO - describe steps here.
+* This de-identification uses the InfoType template, which treats all the data as text to be searched.  
+* TODO - update this to use record transformations instead.    
 
-##### Redaction of Sensitive Data with KMS Wrapped Key
+1. Change the DLP template name. 
+```
+export DLP_TEMPLATE_NAME=deidentification-sensitive-data
+```
+
+2. [Create the DLP templates](https://cloud.google.com/dlp/docs/reference/rest/v2/projects.deidentifyTemplates/create)
+One is for the deidentification and the other is for inspection. Execute this shell script.
+**Deidentify template**
+```shell script
+curl -X POST https://dlp.googleapis.com/v2/projects/$PROJECT/deidentifyTemplates \
+-H "Authorization: Bearer $TOKEN" \
+-H "Content-Type: application/json" \
+-d @dlp-templates/deindentification-sensitive-data-template.json -i 
+```
+
+**Inspect template**
+```shell script
+curl -X POST https://dlp.googleapis.com/v2/projects/$PROJECT/inspectTemplates \
+-H "Authorization: Bearer $TOKEN" \
+-H "Content-Type: application/json" \
+-d @dlp-templates/inspect-sensitive-data-template.json -i 
+```
+
+
+3. This creates a new DataFlow job template named `dlp-sensitive-data-dfjob` and saves it to GCS.
+```shell script
+ mvn compile exec:java -Dexec.mainClass=com.swilliams11.googlecloud.dataflow.dlp.DLPTextToBigQueryStreamingGenericExample -Dexec.cleanupDaemonThreads=false -Dexec.args=" \
+ --project=$PROJECT \
+ --stagingLocation=gs://$BUCKET/staging \
+ --tempLocation=gs://$BUCKET/temp \
+ --templateLocation=gs://$BUCKET/dlp-sensitive-data-dfjob.json \
+ --runner=DataflowRunner"
+```
+
+4. This creates a new DataFlow job named `dlp-sensitive-data` that is based on the template created in step 3. It
+includes both the deidentify and inspect templates.  
+**Note that the `*` is escaped below because I'm using zshell.**  
+```shell script
+gcloud dataflow jobs run dlp-sensitive-data \
+--gcs-location=gs://$BUCKET/dlp-sensitive-data-dfjob.json \
+--zone=us-central1-f \
+--parameters=inputFilePattern=gs://$BUCKET/\*_name_email.csv,\
+dlpProjectId=$PROJECT,\
+deidentifyTemplateName=projects/$PROJECT/deidentifyTemplates/$DLP_TEMPLATE_NAME,\
+inspectTemplateName=projects/$PROJECT/inspectTemplates/inspect-sensitive-data,\
+datasetName=$DATASET_NAME,\
+batchSize=10
+```
+
+### Redaction of Sensitive Data with KMS Wrapped Key
 This section describes the `deidentification-sensitive-data-with-enckvm-key-template.json`, which uses the 
 [CryptoReplaceFfxFpeConfig](https://cloud.google.com/dlp/docs/reference/rest/v2/organizations.deidentifyTemplates#cryptoreplaceffxfpeconfig)
 with a [KMS Wrapped Crypto Key](https://cloud.google.com/dlp/docs/reference/rest/v2/organizations.deidentifyTemplates#DeidentifyTemplate.KmsWrappedCryptoKey).
+This approach is more secure because the cryptographic key that is used to encrypt your data is not hard-coded in the
+template as in the first approach.  
 
-You will need to update your service account key that you created earlier to include the following persmissions.
+You will need to update your service account key that you created earlier to include the following permissions.
 * Cloud KMS Admin
 * Cloud KMS Decrypter
 * Cloud KMS Encrypter
@@ -166,7 +220,7 @@ export LOCATION=global
 ```
 
 2. Create the [Key Ring](https://cloud.google.com/kms/docs/reference/rest/v1/projects.locations.keyRings/create) 
-in the appropriate location.
+in the `global` location.
 
 ```shell script
 curl -X POST "https://cloudkms.googleapis.com/v1/projects/$PROJECT/locations/$LOCATION/keyRings?keyRingId=dlp-encryption-keys" \
@@ -289,7 +343,7 @@ batchSize=10
 ``` 
 
 ## Run your code in IntelliJ IDEA
-Follow this section if you want to execute your code on your local machine.  Create a new configuration under 
+Follow this section if you want to execute this code on your local machine.  Create a new configuration under 
 **Application** so you can debug and trace the code locally. It's easier to troubleshoot this way.  
  
 Set the following environment variables in the run/debug configuration.

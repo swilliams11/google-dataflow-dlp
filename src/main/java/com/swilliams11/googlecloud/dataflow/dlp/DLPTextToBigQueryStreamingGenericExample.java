@@ -491,7 +491,6 @@ public class DLPTextToBigQueryStreamingGenericExample {
                     this.requestBuilder =
                             DeidentifyContentRequest.newBuilder()
                                     .setParent(ProjectName.of(this.dlpProjectId.get()).toString())
-                                    //.setParent("/projects/sw-hpc/locations/us-central1")
                                     .setDeidentifyTemplateName(this.deIdentifyTemplateName.get());
                     if (this.inspectTemplateExist) {
                         this.requestBuilder.setInspectTemplateName(this.inspectTemplateName.get());

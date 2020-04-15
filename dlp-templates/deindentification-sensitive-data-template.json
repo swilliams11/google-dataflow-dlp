@@ -1,7 +1,7 @@
 {
   "deidentifyTemplate":{
-    "displayName":"De-indentification Sensitive Data With Key Template",
-    "description":"De-identifies tabular (csv) sensitive data with a key.",
+    "displayName":"De-indentification Sensitive Data Template",
+    "description":"De-identifies tabular (csv) sensitive data.",
     "deidentifyConfig":{
       "infoTypeTransformations":{
         "transformations":[
@@ -37,5 +37,6 @@
         ]
       }
     }
-  }
+  },
+  "templateId": "deidentification-sensitive-data"
 }
