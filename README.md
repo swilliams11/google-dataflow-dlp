@@ -212,7 +212,7 @@ gcloud auth activate-service-account --key-file=$MY_SVC_ACC_KEY
 export TOKEN=$(gcloud auth print-access-token)
 ```
 
-1. Enabled the Google Cloud Services API
+1. Enable the Google Cloud Services API
 
 ```shell script
 gcloud services enable cloudkms.googleapis.com
@@ -292,26 +292,11 @@ curl -X POST https://dlp.googleapis.com/v2/projects/$PROJECT/deidentifyTemplates
 -H "Authorization: Bearer $TOKEN" \
 -H "Content-Type: application/json" \
 -d @dlp-templates/deindentification-sensitive-data-with-enckvm-key-template.json -i 
- ```
-
-Use this script to setup a template for the `cryptoDeterministicConfig`. 
-TODO - update documentation on this; I have tested this flow.  
-```shell script
-curl -X POST https://dlp.googleapis.com/v2/projects/$PROJECT/deidentifyTemplates \
--H "Authorization: Bearer $TOKEN" \
--H "Content-Type: application/json" \
--d @dlp-templates/deindentification-sensitive-data-with-enckvm-deterministic-key-template.json -i 
  ``` 
 
 **You can also delete the `CryptoReplaceFfxFpeConfig` template with the following command.**
 ```shell script
 curl -X DELETE https://dlp.googleapis.com/v2/projects/$PROJECT/deidentifyTemplates/deidentification-sensitive-data-with-kms-key \
--H "Authorization: Bearer $TOKEN"
-```
-
-**You can also delete the `cryptoDeterministicConfig` template with the following command.**
-```shell script
-curl -X DELETE https://dlp.googleapis.com/v2/projects/$PROJECT/deidentifyTemplates/deidentification-sensitive-data-with-kms-key-deterministic \
 -H "Authorization: Bearer $TOKEN"
 ```
 
@@ -341,6 +326,51 @@ deidentifyTemplateName=projects/$PROJECT/deidentifyTemplates/$DLP_TEMPLATE_NAME,
 datasetName=$DATASET_NAME,\
 batchSize=10
 ``` 
+
+### Redaction of Sensitive Data with KMS Wrapped Key - Deterministic
+This section describes how to use the [`CryptoDeterministicConfig`](https://cloud.google.com/dlp/docs/reference/rest/v2/organizations.deidentifyTemplates#cryptodeterministicconfig).
+Use this script to setup a template for the `cryptoDeterministicConfig`.  It uses the same CryptoKey that you created
+in the previous section.  
+
+1. Create the template. 
+```shell script
+curl -X POST https://dlp.googleapis.com/v2/projects/$PROJECT/deidentifyTemplates \
+-H "Authorization: Bearer $TOKEN" \
+-H "Content-Type: application/json" \
+-d @dlp-templates/deindentification-sensitive-data-with-enckvm-deterministic-key-template.json -i 
+ ```
+
+**You can also delete the `cryptoDeterministicConfig` template with the following command.**
+```shell script
+curl -X DELETE https://dlp.googleapis.com/v2/projects/$PROJECT/deidentifyTemplates/deidentification-sensitive-data-with-kms-key-deterministic \
+-H "Authorization: Bearer $TOKEN"
+```
+
+2. Save the DataFlow job template in GCS.
+```shell script
+gcloud auth login
+
+export DLP_TEMPLATE_NAME=deidentification-sensitive-data-with-kms-key-deterministic
+
+mvn compile exec:java -Dexec.mainClass=com.swilliams11.googlecloud.dataflow.dlp.DLPTextToBigQueryStreamingGenericExample -Dexec.cleanupDaemonThreads=false -Dexec.args=" \
+ --project=$PROJECT \
+ --stagingLocation=gs://$BUCKET/staging \
+ --tempLocation=gs://$BUCKET/temp \
+ --templateLocation=gs://$BUCKET/dlp-sensitive-data-with-kms-key-deterministic-dfjob.json \
+ --runner=DataflowRunner"
+```
+
+3. Submit a new job to DataFlow. 
+```shell script
+gcloud dataflow jobs run dlp-sensitive-data-with-kms-key-deterministic \
+--gcs-location gs://$BUCKET/dlp-sensitive-data-with-kms-key-deterministic-dfjob.json \
+--zone=us-central1-f \
+--parameters=inputFilePattern=gs://$BUCKET/employee_data.csv,\
+dlpProjectId=$PROJECT,\
+deidentifyTemplateName=projects/$PROJECT/deidentifyTemplates/$DLP_TEMPLATE_NAME,\
+datasetName=$DATASET_NAME,\
+batchSize=10
+```
 
 ## Run your code in IntelliJ IDEA
 Follow this section if you want to execute this code on your local machine.  Create a new configuration under 
