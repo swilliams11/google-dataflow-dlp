@@ -143,9 +143,6 @@ Therefore you must save a copy of the original file if you need to look up the o
 TODO - describe steps here.
 
 ##### Redaction of Sensitive Data with KMS Wrapped Key
-**Currently, there is an issue where my DataFlow job cannot access the CryptoKey hosted in my GCP project even though
-that CryptoKey exists. I'm working with our support team on it.**
-
 This section describes the `deidentification-sensitive-data-with-enckvm-key-template.json`, which uses the 
 [CryptoReplaceFfxFpeConfig](https://cloud.google.com/dlp/docs/reference/rest/v2/organizations.deidentifyTemplates#cryptoreplaceffxfpeconfig)
 with a [KMS Wrapped Crypto Key](https://cloud.google.com/dlp/docs/reference/rest/v2/organizations.deidentifyTemplates#DeidentifyTemplate.KmsWrappedCryptoKey).
@@ -190,8 +187,8 @@ export CRYPTOKEY=DlpCryptoKey
 [cryptoKeys.encrypt API request](https://cloud.google.com/kms/docs/reference/rest/v1/projects.locations.keyRings.cryptoKeys/encrypt).
 This payload is the base64 encode string `hello`.  
 
-I generated the a 256 random bits with the following command.  The [openssl command](https://www.openssl.org/docs/man1.0.2/man1/openssl-rand.html)
-generates bytes, so in this case I request 32 random bytes (256 bits).  
+I generated 256 random bits with the command listed below.  The [openssl command](https://www.openssl.org/docs/man1.0.2/man1/openssl-rand.html)
+generates bytes - 32 random bytes (256 bits).  
   
 ```shell script
 openssl rand 32 -base64
@@ -227,7 +224,8 @@ curl -X POST "https://cloudkms.googleapis.com/v1/projects/$PROJECT/locations/$LO
 -d @kms-request-data/kms-decrypt-payload.json -i
 ``` 
  
-5. Update the CryptoKey name in the template before you upload it.  Execute the following script  
+5. Update the CryptoKey name in the template before you upload it.  Execute the following script.  This script will 
+replace `REPLACE_WITH_YOUR_CRYPTO_KEY_NAME` with the cryptoKeyName `projects/PROJECT/locations/global/keyRings/KEY_RING_NAME/cryptoKeys/CRYPTO_KEY_NAME`. 
 ```shell script
 chmod +X scripts/update-deidentification-template.sh
 ./scripts/update-deidentification-template.sh
@@ -291,8 +289,8 @@ batchSize=10
 ``` 
 
 ## Run your code in IntelliJ IDEA
-Create a new configuration under **Application** so you can debug and trace the code locally. Its easier to troubleshoot
-this way.  
+Follow this section if you want to execute your code on your local machine.  Create a new configuration under 
+**Application** so you can debug and trace the code locally. It's easier to troubleshoot this way.  
  
 Set the following environment variables in the run/debug configuration.
 * PROJECT = YOUR_GCP_PROJECT
@@ -319,7 +317,7 @@ replace all the environment variables with hard coded values.
 --defaultWorkerLogLevel=DEBUG
 ```
 
-Use output if you want to write logging information to a file.  
+Include the `output` property if you want to write logging information to a file.  
 ```shell script
 --output=./local-output
 ```
@@ -339,6 +337,7 @@ Use output if you want to write logging information to a file.
 
 ## Re-identify your Data
 TODO - demo how to do this with this api https://cloud.google.com/dlp/docs/reference/rest/v2/projects.content/reidentify
+TODO - include GCP CLI command as well.
 
 ## Results
 ### DataFlow Job
